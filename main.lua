@@ -1,39 +1,13 @@
 function love.load()
     love.window.setTitle("Oh, you wanted a 'game', did you?")
-    state = {}
+    state = newGame()
+end
+
+function newGame()
     vx, vy = 4, 3
     x, y = 60, 60
     w, h = 30, 30
     sw, sh = love.graphics.getDimensions()
-    function state.update(self, dt)
-        x = x + vx
-        y = y + vy
-        if x < 0 then
-            x = 0
-            vx = -vx
-        else
-            if (x + w) > sw then
-                x = sw - w
-                vx = -vx
-            end
-        end
-        if y < 0 then
-            y = 0
-            vy = -vy
-        else
-            if (y + h) > sh then
-                y = sh - h
-                vy = -vy
-            end
-        end
-    end
-    function state.draw(self)
-        love.graphics.setColor(255,255,255)
-        love.graphics.rectangle("fill", x, y, w, h)
-    end
-    function state.event(self, ev)
-    end
-
     local inputstate = {x= sw/2, y= sh-50, w= 30, h= 30}
     local bullets = {}
     local enemies = {}
@@ -41,7 +15,7 @@ function love.load()
     local counter = 0
     local gameover = false
     local starttime = love.timer.getTime()
-    local endtime = nil
+    local endtime = starttime
     function endgame()
         gameover = true;
     end
@@ -63,6 +37,9 @@ function love.load()
             -- game isn't over, so update end time
             endtime = love.timer.getTime()
         else
+            if love.keyboard.isDown('space') then
+                state = newGame()
+            end
             if love.keyboard.isDown('q') then
                 love.event.quit()
             end
@@ -75,7 +52,7 @@ function love.load()
         for k, v in pairs(enemies) do
             v.y = v.y + 1
             if v.y >= (sh - esize) then
-                enemies[v] = nil
+                enemies[k] = nil
                 endgame()
             end
             if love.math.random(80) < 2 then
@@ -84,7 +61,7 @@ function love.load()
         end
         for k, b in pairs(bullets) do
             if (b.y < 0) or (b.y > sh) then
-                bullets[v] = nil
+                bullets[k] = nil
             else
                 b.y = b.y + b.v
                 -- collide with enemies
@@ -102,7 +79,7 @@ function love.load()
             end
         end
         -- shoot
-        if love.keyboard.isDown('space')  and not gameover then
+        if not gameover then
             table.insert(bullets, {x=self.x + self.w/2, y = self.y - self.h/2, v=-10})
         end
         -- spawn enemies
@@ -117,7 +94,7 @@ function love.load()
         love.graphics.setColor(255,255,255)
         love.graphics.print(string.format("Survival time: %.3f", endtime - starttime), 20, 20)
         if gameover then
-            love.graphics.print("game over (press 'q' to quit)", 20, 50)
+            love.graphics.print("game over (press 'q' to quit, space to start over)", 20, 50)
             love.graphics.setColor(255, 0, 0)
         end
         love.graphics.rectangle("fill", self.x, self.y, self.w, self.h)
@@ -135,7 +112,7 @@ function love.load()
     function inputstate.event(self, ev)
     end
 
-    state = inputstate
+    return inputstate
         
 end
 
