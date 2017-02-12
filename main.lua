@@ -1,5 +1,5 @@
 function love.load()
-    love.window.setTitle("Oh, you wanted a 'game', did you?")
+    love.window.setTitle("Shooty Squares")
     state = newGame()
 end
 
@@ -49,13 +49,19 @@ function newGame()
         self.x = math.min(self.x, (sw-self.w))
         self.y = math.max(self.y, 0)
         self.y = math.min(self.y, (sh-self.h))
+        -- update enemies
+        -- threshold starts at 80, slowly drops to 10
+        local shootThreshold = 10
+        if elapsed < (80-10)*2 then
+            shootThreshold = 80 - elapsed/2
+        end
         for k, v in pairs(enemies) do
             v.y = v.y + 1
             if v.y >= (sh - esize) then
                 enemies[k] = nil
                 endgame()
             end
-            if love.math.random(80) < 2 then
+            if love.math.random(shootThreshold) < 2 then
                 table.insert(bullets, {x = v.x + esize/2, y=v.y + esize + 3, v = 10})
             end
         end
@@ -83,6 +89,10 @@ function newGame()
             table.insert(bullets, {x=self.x + self.w/2, y = self.y - self.h/2, v=-10})
         end
         -- spawn enemies
+        local spawnThreshold = 20
+        if elapsed > (60-20)*2 then
+            spawnThreshold = 60 - elapsed/2
+        end
         if counter > 60 then
             table.insert(enemies, {x=math.random(sw - 2*esize) + esize, y=0})
             counter = 0
@@ -91,7 +101,7 @@ function newGame()
         end
     end
     function inputstate.draw(self)
-        love.graphics.setColor(255,255,255)
+        love.graphics.setColor(128,255,128)
         love.graphics.print(string.format("Survival time: %.3f", endtime - starttime), 20, 20)
         if gameover then
             love.graphics.print("game over (press 'q' to quit, space to start over)", 20, 50)
@@ -104,7 +114,7 @@ function newGame()
             love.graphics.rectangle("fill", v.x, v.y, esize, esize)
         end
         -- bullets
-        love.graphics.setColor(255,128,128)
+        love.graphics.setColor(255,165,0)
         for k, v in pairs(bullets) do
             love.graphics.rectangle("fill", v.x, v.y, 2, 4)
         end
